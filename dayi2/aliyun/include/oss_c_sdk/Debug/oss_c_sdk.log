@@ -1,0 +1,54 @@
+﻿生成启动时间为 2019/10/6 10:06:35。
+     1>项目“E:\dayi\demo\ali\c\aliyun-oss-c-sdk-3.5.0\oss_c_sdk\oss_c_sdk.vcxproj”在节点 2 上(Build 个目标)。
+     1>ClCompile:
+         D:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl- /Od /Oy- /D WIN32 /D _DEBUG /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\" /Fd"Debug\oss_c_sdk.pdb" /Gd /TC /analyze- /errorReport:prompt aos_buf.c aos_crc64.c aos_fstack.c aos_http_io.c aos_log.c aos_status.c aos_string.c aos_transport.c aos_util.c oss_auth.c oss_bucket.c oss_define.c oss_live.c oss_multipart.c oss_object.c oss_resumable.c oss_util.c oss_xml.c
+         oss_xml.c
+         oss_util.c
+         oss_resumable.c
+         oss_object.c
+         oss_multipart.c
+         oss_live.c
+         oss_define.c
+         oss_bucket.c
+         oss_auth.c
+         aos_util.c
+         aos_transport.c
+         aos_string.c
+         aos_status.c
+         aos_log.c
+         aos_http_io.c
+         aos_fstack.c
+         aos_crc64.c
+         aos_buf.c
+         正在生成代码...
+       Lib:
+         D:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\Lib.exe /OUT:"E:\dayi\demo\ali\c\aliyun-oss-c-sdk-3.5.0\Debug\oss_c_sdk.lib" "libapr-1.lib" "libaprutil-1.lib" curl.lib mxml1.lib /LIBPATH:..\third_party\lib\Debug\ /NOLOGO Debug\aos_buf.obj
+         Debug\aos_crc64.obj
+         Debug\aos_fstack.obj
+         Debug\aos_http_io.obj
+         Debug\aos_log.obj
+         Debug\aos_status.obj
+         Debug\aos_string.obj
+         Debug\aos_transport.obj
+         Debug\aos_util.obj
+         Debug\oss_auth.obj
+         Debug\oss_bucket.obj
+         Debug\oss_define.obj
+         Debug\oss_live.obj
+         Debug\oss_multipart.obj
+         Debug\oss_object.obj
+         Debug\oss_resumable.obj
+         Debug\oss_util.obj
+         Debug\oss_xml.obj
+     1>libaprutil-1.lib(libaprutil-1.dll) : warning LNK4006: __NULL_IMPORT_DESCRIPTOR 已在 libapr-1.lib(libapr-1.dll) 中定义；已忽略第二个定义
+     1>libaprutil-1.lib(libaprutil-1.dll) : warning LNK4221: 此对象文件未定义任何之前未定义的公共符号，因此任何耗用此库的链接操作都不会使用此文件
+     1>curl.lib(libcurl.dll) : warning LNK4006: __NULL_IMPORT_DESCRIPTOR 已在 libapr-1.lib(libapr-1.dll) 中定义；已忽略第二个定义
+     1>curl.lib(libcurl.dll) : warning LNK4221: 此对象文件未定义任何之前未定义的公共符号，因此任何耗用此库的链接操作都不会使用此文件
+     1>mxml1.lib(MXML1.dll) : warning LNK4006: __NULL_IMPORT_DESCRIPTOR 已在 libapr-1.lib(libapr-1.dll) 中定义；已忽略第二个定义
+     1>mxml1.lib(MXML1.dll) : warning LNK4221: 此对象文件未定义任何之前未定义的公共符号，因此任何耗用此库的链接操作都不会使用此文件
+         oss_c_sdk.vcxproj -> E:\dayi\demo\ali\c\aliyun-oss-c-sdk-3.5.0\Debug\oss_c_sdk.lib
+     1>已完成生成项目“E:\dayi\demo\ali\c\aliyun-oss-c-sdk-3.5.0\oss_c_sdk\oss_c_sdk.vcxproj”(Build 个目标)的操作。
+
+已成功生成。
+
+已用时间 00:00:05.93
