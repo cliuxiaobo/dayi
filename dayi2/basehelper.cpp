@@ -21,11 +21,10 @@ namespace BaseHelper
             qDebug() << "key" << i << " is:" << keys.at(i);
         }
         //因为是预先定义好的JSON数据格式，所以这里可以这样读取
-        if(rootObj.contains("first head"))
+        if(rootObj.contains("code"))
         {
-           QJsonObject subObj = rootObj.value("first head").toObject();
-           int command = subObj["command_type"].toInt();
-            return command;
+           int command = rootObj["code"].toInt();
+           return command;
         }
         return 0 ;
     }
@@ -44,10 +43,6 @@ namespace BaseHelper
         }
         QJsonObject rootObj = jsonDoc.object();
         QStringList keys = rootObj.keys();
-        for(int i = 0; i < keys.size(); i++)
-        {
-            qDebug() << "key" << i << " is:" << keys.at(i);
-        }
         //因为是预先定义好的JSON数据格式，所以这里可以这样读取
         if(rootObj.contains("first head"))
         {
@@ -151,6 +146,52 @@ namespace BaseHelper
             return i;
         }
         return 0 ;
+    }
+
+    int getWebInfo(const QByteArray &message,WebTitleData *info)
+    {
+        QJsonParseError json_error;
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(message,&json_error);
+        if(json_error.error != QJsonParseError::NoError)
+        {
+            qDebug() << "json error!";
+            // 回复Web端
+            return -1;
+        }
+        QJsonObject rootObj = jsonDoc.object();
+        //因为是预先定义好的JSON数据格式，所以这里可以这样读取
+        if(rootObj.contains("data"))
+        {
+           QJsonObject subObj = rootObj.value("data").toObject();
+           info->id = subObj["id"].toInt();
+           info->name = subObj["name"].toString();
+           info->status = subObj["status"].toInt();
+            return 1;
+        }
+        return 0 ;
+    }
+    int getWebInfo(const QByteArray &message,WebAudioData *info)
+    {
+        QJsonParseError json_error;
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(message,&json_error);
+        if(json_error.error != QJsonParseError::NoError)
+        {
+            qDebug() << "json error!";
+            // 回复Web端
+            return -1;
+        }
+        QJsonObject rootObj = jsonDoc.object();
+        //因为是预先定义好的JSON数据格式，所以这里可以这样读取
+        if(rootObj.contains("data"))
+        {
+           QJsonObject subObj = rootObj.value("data").toObject();
+           info->code= subObj["code"].toInt();
+           info->user_id = subObj["user_id"].toInt();
+            return 1;
+        }
+        return 0 ;
+
+
     }
 
 

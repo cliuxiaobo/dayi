@@ -12,9 +12,8 @@
 #include <QtWebSockets/QWebSocketServer>
 int main(int argc, char *argv[])
 {
+ //   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication a(argc, argv);
-
-
     // 创建本地接听
     QWebSocketServer server(QStringLiteral("QWebChannel Standalone Example Server"), QWebSocketServer::NonSecureMode);
     if (!server.listen(QHostAddress::LocalHost, 12345)) {

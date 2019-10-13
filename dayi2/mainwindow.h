@@ -1,4 +1,5 @@
-﻿#ifndef MAINWINDOW_H
+﻿
+#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include "./audioctl/audiorecorder.h"
@@ -10,7 +11,7 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow
+class MainWindow : public QWebEngineView
 {
     Q_OBJECT
 
@@ -18,12 +19,12 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
    int SetWebWiew(int mode,int wide,int high);
-   void resizeEvent(QResizeEvent *event);
+ // void resizeEvent(QResizeEvent *event);
 public slots:
    void adjustLocation();
 private:
-    QWebEngineView *view;
-   // Ui::MainWindow *ui;
+ //   QWebEngineView *view;
+    Ui::MainWindow *ui;
     QWidget *m_start_Screen;
    // AudioRecorder *recorder;
 };

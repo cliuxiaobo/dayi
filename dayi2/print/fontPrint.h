@@ -1,5 +1,7 @@
 ﻿#ifndef FONTPRINT_H
 #define FONTPRINT_H
+
+#include <QWebEngineView>
 #include<QMutex.h>
 #include <Qqueue>
 #include <QThread>
@@ -54,18 +56,25 @@ public:
     int printPreview();
     int GetVoucherTemplate(QPixmap *pix);
     int getPrintDeviceList();
-
+    void printDocumentA4(const QString &strHtml, int iFormat = 1);
 public slots:
     void drawPic(QPrinter *printerPixmap);
     int printDocument(QPrinter *printer);
+    void slotHandlePagePrinted(bool result);
+    void printLocation(bool flag);
 private:
     // 取药号打印
     int PrintDocumentVoucher(const QByteArray &message,bool flag);
     // 病例单打印
     int PrintDocumentDrug(const QByteArray &message,bool flag);
+
+
     QPixmap *m_pix;
     int agreeWith;    // 57mm 纸
     int agreeHigh;
+
+    QPrinter *m_currentPrinter;
+    QWebEnginePage    *doc;
 };
 
 #endif

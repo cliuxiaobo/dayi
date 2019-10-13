@@ -1,10 +1,59 @@
 ﻿#include "./fontPrint.h"
 #include <QProgressDialog>
 #include <QPainter>
+#include <QTextDocument>
+#include <QMainWindow>
+#include <QDialog>
+#include <QVariantMap>
+#include <type_traits>
+
+#include <QWebEngineView>
+#include <QDialog>
+#include <QVariantMap>
+#include <QDesktopServices>
+
+
+#include <QtCore/QSettings>
+
+#include <QtWidgets/QDesktopWidget>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QPlainTextEdit>
+#include <QtPrintSupport/QPrintDialog>
+#include <QtPrintSupport/QPrintPreviewDialog>
+#include <QtPrintSupport/QPrinter>
+#include <QtWidgets/QMenuBar>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QStatusBar>
+#include <QtWidgets/QToolBar>
+#include <QtWidgets/QInputDialog>
+
+#include <QWebEngineHistory>
+#include <QWebEngineProfile>
+#include <QWebEngineSettings>
+
+#include <QtCore/QDebug>
+
+
 #include "../basehelper.h"
 #include "./orderpix.h"
 
+template<typename Arg, typename R, typename C>
+struct InvokeWrapper {
+    R *receiver;
+    void (C::*memberFun)(Arg);
+    void operator()(Arg result) {
+        (receiver->*memberFun)(result);
+    }
+};
+
 typedef QList<QTreeWidgetItem *> StyleItems;
+
+template<typename Arg, typename R, typename C>
+InvokeWrapper<Arg, R, C> invoke(R *receiver, void (C::*memberFun)(Arg))
+{
+    InvokeWrapper<Arg, R, C> wrapper = {receiver, memberFun};
+    return wrapper;
+}
 
 FontPrint::FontPrint()
 {
@@ -53,7 +102,19 @@ int FontPrint::PrintDocumentDrug(const QByteArray &message,bool flag)
     pixVoucher.setPixDrugInfo(drugArray,drugNum);
 
     pixVoucher.agreeTempPrintSize(&agreeWith,&agreeHigh); //协商打印尺寸
+    QFile loadFile("D:\\2.html");
+    if(!loadFile.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "could't open projects json";
+        return 0;
+    }
+    QByteArray allData = loadFile.readAll();
+   loadFile.close();
+    QString strHtml;
+    strHtml.append(allData);
 
+    printDocumentA4(strHtml, 1);
+#if 0
     // 获取打印模板
     m_pix =new QPixmap(agreeWith,agreeHigh);
     pixVoucher.GetDrugTemplate(m_pix);  // 获取打印信息
@@ -65,6 +126,7 @@ int FontPrint::PrintDocumentDrug(const QByteArray &message,bool flag)
         createprinter();
     }
     delete[] m_pix;
+#endif
 }
 
 // 打印取号ID
@@ -111,6 +173,7 @@ int FontPrint::recvPrintInfo(const QByteArray &messagee)
     if(1 == info.command_child)
     {
         PrintDocumentVoucher(messagee,0); // 直接打印凭条
+
     }else if(2 == info.command_child)
     {  // 打印凭条并且预览打印
         PrintDocumentVoucher(messagee,1);
@@ -138,7 +201,9 @@ int FontPrint::createprinter()
    QPrinterInfo info;
    QString name = info.defaultPrinterName(); // 获取默认打印机名字
     printer.setPrinterName(name);
-    printer.setPaperSize(QSizeF(190,800), QPrinter::Point);
+   // printer.setPaperSize(QSizeF(190,800), QPrinter::Point);
+
+    printer.setPaperSize(QPrinter::A4);
     printDocument(&printer);
     return 0;
 }
@@ -175,6 +240,38 @@ int FontPrint::printPreview()
      preview.exec();
     return 0;
 }
+
+void FontPrint::slotHandlePagePrinted(bool result)
+{
+    // 启动打印机进行打印
+    qDebug() << "end";
+}
+
+void FontPrint::printDocumentA4(const QString &strHtml, int iFormat)
+{
+
+    m_currentPrinter = new QPrinter();
+    m_currentPrinter->setPrinterName(m_currentPrinter->printerName());
+    doc =new QWebEnginePage();
+    connect(doc, SIGNAL(loadFinished(bool)), SLOT(printLocation(bool))); // 注册登录完成事件
+    doc->setHtml(strHtml);  // 获取网页内容
+    return;
+}
+
+// 打印信息加载完成
+void FontPrint::printLocation(bool flag)
+{
+
+    qDebug()<< "start print";
+ //   qDebug()<< flag;
+  //  QString info;
+    doc->print(m_currentPrinter, invoke(this, &FontPrint::slotHandlePagePrinted));
+    //   this->showMaximized();
+ //   this->setZoomFactor(this->zoomFactor() + 0.5);
+ //   this->show();
+ //   m_start_Screen->close();
+}
+
 
 int FontPrint::printDocument(QPrinter *printer)
 {   

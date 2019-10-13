@@ -9,6 +9,16 @@
 #define VERSION "2.4.5"
 
 
+typedef struct _WebAudioData{
+    int code;     // 主命令
+    int user_id;    // 子命令
+    _WebAudioData(){
+        code = 0;
+        user_id = 0;
+    }
+}WebAudioData;
+
+
 typedef struct _WebHeadInfo{
     int command_type;     // 主命令
     int command_child;    // 子命令
@@ -79,6 +89,19 @@ typedef struct _WebPrintDrugInfo{
        drug_num = "";
     }
 }WebPrintDrugInfo;
+
+typedef struct _WebTitleData{
+  int id;
+  QString name;
+  int status;
+    _WebTitleData(){
+       id = 0;
+       name = "";
+       status = 0;
+    }
+}WebTitleData;
+
+
 
 //@brief:服务器工作模式
 enum class WorkMode

@@ -3,70 +3,52 @@
 #include <QDesktopWidget>
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent)
-   // ui(new Ui::MainWindow)
+    QWebEngineView(parent)
 {
-    #if 1
-   // QWebEngineView view;
-    qDebug()<< "123456";
-    view = new QWebEngineView();
-    view->setWindowTitle(QString::fromLocal8Bit("大医云诊所"));
-    view->setWindowIcon(QIcon("E:/dayi/adyi2.0/dayi2/res/img/ico/dayi.ico"));
-    view->setStyleSheet("border-image:url(E:/dayi/adyi2.0/dayi2/res/img/jiazai.jpg)");
-   // view->setUrl(QUrl(QStringLiteral("http://39.104.64.52/index.html")));  // 登录界面
-    connect(view, SIGNAL(loadFinished(bool)), SLOT(adjustLocation()));
-    view->setUrl(QUrl(QStringLiteral("http://192.168.1.9:8080")));  // 登录界面
-   // view->resize(1024, 750);
-    qDebug()<< "123456";
-  //   view->show();
+    this->setWindowTitle(QString::fromLocal8Bit("扶桑云医"));
+    this->setWindowIcon(QIcon("fusang.ico"));
+    this->setContextMenuPolicy(Qt::NoContextMenu);
+    connect(this, SIGNAL(loadFinished(bool)), SLOT(adjustLocation())); // 注册登录完成事件
+    this->setUrl(QUrl(QStringLiteral("http://192.168.1.9:8080")));  // 登录界面
+//    this->setUrl(QUrl(QStringLiteral(BUILD_DIR"/index.html")));   // 调试选项
+   // this->resize(1024, 750);
 
     // 设置启动界面
     m_start_Screen = new QWidget();
-    m_start_Screen->resize(350, 350);
+    m_start_Screen->resize(1024, 750);
     m_start_Screen->setWindowTitle(QString::fromLocal8Bit("正在启动..."));
-    m_start_Screen->setWindowIcon(QIcon("E:/dayi/adyi2.0/dayi2/res/img/ico/dayi.ico"));
-    m_start_Screen->setStyleSheet("border-image:url(E:/dayi/adyi2.0/dayi2/res/img/jiazai.jpg)");
+    m_start_Screen->setStyleSheet("border-image:url(./beijin.jpg)");
     m_start_Screen->show();
-#endif
-
 }
 
 MainWindow::~MainWindow()
 {
-    //delete ui;
-}
-
-void MainWindow::resizeEvent(QResizeEvent *event)
-{
-#if 0
-    view->resize(this->size());
-    view->show();
-#endif
+    delete m_start_Screen;
 }
 
 // 界面加载完成
 void MainWindow::adjustLocation()
 {
-    qDebug()<< "1234321";
-    view->show();
-    delete m_start_Screen;
+    qDebug()<< "界面加载完成界面";
+    this->showMaximized();
+    this->setZoomFactor(this->zoomFactor() + 0.5);
+    this->show();
+    m_start_Screen->close();
 }
 
 //
 int MainWindow::SetWebWiew(int mode,int wide,int high){
     if(mode == 1){ // 自定义尺寸
-        view->resize(wide, high);
+        this->resize(wide, high);
     }
     else if(mode == 2)
     {
         QDesktopWidget* pDw = QApplication::desktop();//获得桌面窗体
         QRect rect = pDw->screenGeometry();//获得分辨率
-        view->resize(rect.width(), rect.width());
-        view->move(0,0);
+        this->resize(rect.width(), rect.width());
+        this->move(0,0);
     }
 
     return 0;
 }
-
-
 

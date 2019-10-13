@@ -45,10 +45,11 @@
 #include <QMediaRecorder>
 #include <QtCore>
 #include <QTime>
+#include <QAudioDeviceInfo>
 #include "basehelper.h"
 #include "audiorecorder.h"
 #include "qaudiolevel.h"
-#include "../aliyun/osschannel.h"
+#include "../aliyun/cossupdate.h"
 static qreal getPeakValue(const QAudioFormat &format);
 static QVector<qreal> getBufferLevels(const QAudioBuffer &buffer);
 
@@ -90,16 +91,16 @@ void AudioRecorder::updateProgress(qint64 duration)
 
 int AudioRecorder::recvAudioInfo(const QByteArray &messagee)
 {
-    WebHeadInfo info;
+    WebAudioData info;
     int ret = BaseHelper::getWebInfo(messagee,&info);
     if(ret < 0 ){
         return -1;
     }
     // 开始录音
-    if(1 == info.command_child)
+    if(1 == info.code)
     {
-       startRecorder(messagee);
-    }else if(2 == info.command_child)
+       startRecorder(info);
+    }else if(2 == info.code)
     {
         stopRecorder(messagee);
     }
@@ -137,18 +138,16 @@ void AudioRecorder::updateStatus(QMediaRecorder::Status status)
 int AudioRecorder::stopRecorder(const QByteArray &message)
 {
     // 上传阿里云
-    QString file =  QString::fromLocal8Bit("E:\dayi\build-DaYi-Desktop_Qt_5_9_1_MSVC2015_32bit-Debug\debug");
-    OssChannel::getInstance().PushFile(file);
+   // QString file =  QString::fromLocal8Bit("E:\dayi\build-DaYi-Desktop_Qt_5_9_1_MSVC2015_32bit-Debug\debug");
+ //   OssChannel::getInstance().PushFile(file);
   //  audioRecorder->pause();
     return 0;
 
 }
-int AudioRecorder::startRecorder(const QByteArray &message)
+int AudioRecorder::startRecorder(WebAudioData info)
 {
     QString timeString = QString::number(BaseHelper::getTimeStamp(), 10);//nowTime.toString();
-    WebHeadInfo headInfo ;
-    BaseHelper::getWebInfo(message,&headInfo);
-    QString Name = timeString + headInfo.userName + ".wav";
+    QString Name = timeString +"_" +QString::number(info.user_id) + ".wav";
     setOutputLocation(Name);
     // 设置录音名字
     toggleRecord();
@@ -161,9 +160,40 @@ int AudioRecorder::startRecorder(const QByteArray &message)
 // 切换开始录音函数
 void AudioRecorder::toggleRecord()
 {
+    foreach (const QString &device, audioRecorder->audioInputs()) {
+        qDebug() << device;
+    }
+#if 0
     QAudioEncoderSettings audioSettings;
     audioSettings.setCodec("audio/amr");
-    audioSettings.setQuality(QMultimedia::HighQuality);
+       // audioSettings.setQuality(QMultimedia::HighQuality);
+#endif
+
+#if 0
+    QAudioFormat fmt;
+    fmt.setSampleRate(8000);// 采样率， 一秒采集音频样本数量，常设置为44100
+    fmt.setChannelCount(1);  // 音频通道数
+  //  fmt.setSampleSize(16); //一个音频数据大小
+    fmt.setCodec("audio/pcm"); //编码方式，大多声卡只支持pcm，也可以通过获取参数得到声卡支持参数
+    fmt.setByteOrder(QAudioFormat::LittleEndian); // 小端 存储还是大端存储
+    fmt.setSampleType(QAudioFormat::Unknown); // 数据类型，对应的是16位
+
+
+    QAudioDeviceInfo info = QAudioDeviceInfo::defaultInputDevice();
+    if (!info.isFormatSupported(fmt))// 判断是否支持配置
+    {
+        qDebug() << "Audio format not support!";
+        fmt = info.nearestFormat(fmt);// 如果不支持，取最近的配置方法。
+    }
+#endif
+    audioRecorder->setAudioInput(audioRecorder->defaultAudioInput());
+    QAudioEncoderSettings audioSettings;
+    audioSettings.setCodec("audio/wav");
+    audioSettings.setSampleRate(16000);
+    audioSettings.setBitRate(16);
+    audioSettings.setChannelCount(1);
+    audioSettings.setQuality(QMultimedia::VeryLowQuality);
+    audioSettings.setEncodingMode(QMultimedia::ConstantQualityEncoding);
     audioRecorder->setEncodingSettings(audioSettings);
     audioRecorder->record();
 }

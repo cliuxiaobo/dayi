@@ -1,6 +1,10 @@
 ﻿//所有控件可它打交道，负责调度任务
 #ifndef DISPATCHPROCESS_H
 #define DISPATCHPROCESS_H
+#include <QMainWindow>
+#include <QWebEngineView>
+#include <QDialog>
+#include <QVariantMap>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include<QMutex.h>
@@ -47,17 +51,26 @@ public:
         return *instance;
    }
 
+
     void run();
     int ProcessMsg(const QByteArray &message);
     int Webview();
     int DispatchSetWebview(int mode,int wige,int high);
+//    void adjustLocation();
+public slots:
+    void adjustLocation();
+   // void adjustLocation();
+
 private:
    explicit DispatchProcess();
     ~DispatchProcess();
+    int SetWebTitle(const QByteArray &message );
     QQueue<eventInfo> QProcess;
     bool m_running;
     AudioRecorder *m_audioRecord;
     FontPrint *m_Print;
+//    QWebEngineView *m_view;
+//    QWidget *m_start_Screen;
     MainWindow  *m_windos;
 };
 

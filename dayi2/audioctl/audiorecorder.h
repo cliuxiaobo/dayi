@@ -45,6 +45,7 @@
 #include <QMediaRecorder>
 #include <QPrintPreviewDialog>
 #include <QUrl>
+#include "../basehelper.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class AudioRecorder; }
@@ -62,7 +63,7 @@ public:
     AudioRecorder();
     ~AudioRecorder();
      void setOutputLocation(QString Name);
-     int startRecorder(const QByteArray &message);
+     int startRecorder(WebAudioData info);
     int recvAudioInfo(const QByteArray &messagee);
     int stopRecorder(const QByteArray &message);
 public slots:

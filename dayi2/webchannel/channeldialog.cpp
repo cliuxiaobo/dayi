@@ -18,34 +18,31 @@ WebDialog::~WebDialog()
 
 void WebDialog::displayMessage(QByteArray &message)
 {
-
+    // 检查是否为json
     // 获取到用户端信息，下发到线下处理服务
     DispatchProcess::getInstance().ProcessMsg(message);
-
-    //ui.output->appendPlainText(message);
 }
 // 接收通道信息
  void WebDialog::receiveText(const QString &text)
  {
+#if 0
      static int i;
+     if(i == 0)
+     {
      if(text == "1"){
         DispatchProcess::getInstance().DispatchSetWebview(2,1024,1024);
      }
-     emit sendText(text);   // 先回复界面确认收到信息
-     #if 0
-     if(i == 0)
-     {
-        i = i+1;
-
-        QFile loadFile("E:\\1.json");
-        if(!loadFile.open(QIODevice::ReadOnly))
-        {
-            qDebug() << "could't open projects json";
-            return;
-        }
-        QByteArray allData = loadFile.readAll();
-        loadFile.close();
-        displayMessage(allData);
-     }
-     #endif
- }
+     qDebug()<< "recv:" + text;
+    i = i+1;
+    QFile loadFile("D:\\1.json");
+    if(!loadFile.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "could't open projects json";
+        return;
+    }
+    QByteArray allData = loadFile.readAll();
+   loadFile.close();
+#endif
+   QByteArray allData = text.toUtf8();
+   displayMessage(allData);
+}

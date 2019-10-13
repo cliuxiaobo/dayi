@@ -25,6 +25,12 @@ namespace BaseHelper
     // 获取药品清单
     int getWebInfo(const QByteArray &message,WebPrintDrugInfo *info);
 
+    // 获取头信息
+    int getWebInfo(const QByteArray &message,WebTitleData *info);
+
+    // 获取音频设备的DATA
+    int getWebInfo(const QByteArray &message,WebAudioData *info);
+
     // 获取时间戳
     long getTimeStamp();
     // 获取时间格式

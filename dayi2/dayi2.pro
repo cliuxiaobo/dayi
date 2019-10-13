@@ -5,10 +5,10 @@
 #-------------------------------------------------
 
 #QT       += core gui
-qtHaveModule(printsupport):  QT+= core gui webchannel widgets websockets multimedia printsupport  webenginewidgets
+qtHaveModule(printsupport):  QT+= core  gui  webchannel widgets websockets multimedia printsupport webenginewidgets
 
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets opengl
 
 TARGET = dayi2
 TEMPLATE = app
@@ -28,7 +28,6 @@ DEFINES += "BUILD_DIR=\"\\\""$$OUT_PWD"\\\"\""
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    aliyun/osschannel.cpp \
     audioctl/audiorecorder.cpp \
     audioctl/qaudiolevel.cpp \
     print/fontPrint.cpp \
@@ -40,11 +39,11 @@ SOURCES += \
     dispatchprocess.cpp \
     main.cpp \
     mainwindow.cpp \
-    dyconfig.cpp
+    dyconfig.cpp \
+    aliyun/cossupdate.cpp
 
 HEADERS += \
         mainwindow.h \
-    aliyun/osschannel.h \
     audioctl/audiorecorder.h \
     audioctl/qaudiolevel.h \
     print/fontPrint.h \
@@ -56,7 +55,8 @@ HEADERS += \
     dispatchprocess.h \
     mainwindow.h \
     dyconfig.h \
-    common.h
+    common.h \
+    aliyun/cossupdate.h
 
 FORMS += \
         mainwindow.ui
@@ -70,8 +70,7 @@ INCLUDEPATH += $$PWD/aliyun/include/oss_c_sdk
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/aliyun/lib/release/ -loss_c_sdk
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/aliyun/lib/debug/ -loss_c_sdk
 
-INCLUDEPATH += $$PWD/aliyun/lib/Release
-DEPENDPATH += $$PWD/aliyun/lib/Release
+LIBS += $$PWD/aliyun/lib/release/oss_c_sdk.lib
 
 win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/aliyun/lib/release/liboss_c_sdk.a
 else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/aliyun/lib/debug/liboss_c_sdk.a
@@ -127,4 +126,30 @@ else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/aliyun/lib/
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/aliyun/lib/release/libaprutil-1.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/aliyun/lib/debug/libaprutil-1.lib
 else:unix: PRE_TARGETDEPS += $$PWD/aliyun/lib/liblibaprutil-1.a
+
+RC_ICONS = fusang.ico
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/common/quazip/lib/ -lquazip
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/common/quazip/lib/ -lquazipd
+
+INCLUDEPATH += $$PWD/common/quazip/include
+DEPENDPATH += $$PWD/common/quazip/include
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/common/quazip/lib/libquazip.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/common/quazip/lib/libquazipd.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/common/quazip/lib/quazip.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/common/quazip/lib/quazipd.lib
+
+
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/common/quazip/lib/ -lzdll
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/common/quazip/lib/ -lzdlld
+
+INCLUDEPATH += $$PWD/common/quazip/include
+DEPENDPATH += $$PWD/common/quazip/include
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/common/quazip/lib/libzdll.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/common/quazip/lib/libzdlld.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/common/quazip/lib/zdll.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/common/quazip/lib/zdlld.lib
 
