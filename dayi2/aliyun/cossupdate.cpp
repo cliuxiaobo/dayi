@@ -1,14 +1,24 @@
 ﻿#include"./cossupdate.h"
 #include "aos_http_io.h"
 #pragma comment(lib, "ws2_32.lib")
+
+
+
+
+#include "COSSUpdate.h"
+
+#include "aos_http_io.h"
+
+
 COSSUpdate* COSSUpdate::m_pThis = NULL;
 COSSUpdate::COSSUpdate(QObject *parent) : QObject(parent)
 {
-    m_pThis = this;
+   // m_pThis = this;
     m_Pool = nullptr;
     m_bUseOSS = false;
     m_DebugStream = NULL;
 
+    qDebug() << "COSSUpdate start";
     QString path = QCoreApplication::applicationDirPath();
     QDir dir(QCoreApplication::applicationDirPath() + "/log");
     if (!dir.exists())
@@ -16,7 +26,6 @@ COSSUpdate::COSSUpdate(QObject *parent) : QObject(parent)
         dir.mkdir(dir.path());
     }
 
-#if 0
     //线程日志
     QDateTime time = QDateTime::currentDateTime();
     QString year = time.toString("yyyy");
@@ -29,7 +38,7 @@ COSSUpdate::COSSUpdate(QObject *parent) : QObject(parent)
         m_DebugStream = new QTextStream(m_DebugFile);
     }
 
-
+   qDebug() << "creat log end";
 
     QSettings set(QCoreApplication::applicationDirPath() + "/config/config.config", QSettings::IniFormat);
     set.beginGroup("OSS");
@@ -38,17 +47,15 @@ COSSUpdate::COSSUpdate(QObject *parent) : QObject(parent)
     {
         return;
     }
-
+    qDebug() << "COSSUpdate init info";
     m_EndPoint = set.value("EndPoint").toByteArray();
     m_AccessKey = set.value("AccessKey").toByteArray();
     m_AccessSecret = set.value("AccessSecret").toByteArray();
     m_BucketName = set.value("BucketName").toByteArray();
     m_ImageEndPoint = set.value("ImageEndPoint").toByteArray();
-#endif
-
     OSSInit();
 
-    connect(this,SIGNAL(emit_OSSUpload(QString , QImage )),this,SLOT(slot_OSSUpload(QString, QImage )));
+    connect(this,SIGNAL(emit_OSSUpload(QString , QString)),this,SLOT(slot_OSSUpload(QString, QString )));
 }
 
 COSSUpdate::~COSSUpdate()
@@ -65,6 +72,12 @@ COSSUpdate::~COSSUpdate()
 
 COSSUpdate*COSSUpdate::instance()
 {
+    if(m_pThis != NULL){
+        return m_pThis;
+    }
+    else{
+        m_pThis = new COSSUpdate();
+    }
     return m_pThis;
 }
 
@@ -86,18 +99,9 @@ bool COSSUpdate::OSSInit()
     aos_str_set(&oss_client_options->config->access_key_secret, m_AccessSecret.data());
     oss_client_options->config->is_cname = 0;
     oss_client_options->ctl = aos_http_controller_create(oss_client_options->pool, 0);
-
+    qDebug() << "COSSUpdate init OSSInit end";
 
     return true;
-}
-
-QString COSSUpdate::ImageEndPoint()
-{
-    QString res;
-    m_DataMutex.lock();
-    res = m_ImageEndPoint;
-    m_DataMutex.unlock();
-    return  res;
 }
 
 void COSSUpdate::output(QString msg)
@@ -108,6 +112,70 @@ void COSSUpdate::output(QString msg)
         m_DebugStream->flush();
     }
 }
+
+void COSSUpdate::slot_OSSUpload(QString fileFullUrl, QString name)
+{
+    QTime _t;
+    qDebug() << "start slot_OSSUpload";
+    _t.start();
+    if (false == m_bUseOSS)
+    {
+        output(QString::fromLocal8Bit("OSSUpload: OSS 未使用") + name) ;
+    }
+    else
+    {
+        qDebug() << fileFullUrl;
+        QFileInfo fileInfo(fileFullUrl);
+        if(!fileInfo.isFile())
+        {
+             output(QString::fromLocal8Bit("OSSUpload: OSS 文件不存在") + fileFullUrl) ;
+             return;
+        }
+        else
+        {
+            QFile loadFile(fileFullUrl);
+            if(!loadFile.open(QIODevice::ReadOnly))
+            {
+                qDebug() << "could't open projects json";
+                return;
+            }
+            QByteArray ba = loadFile.readAll();
+            loadFile.close();
+            void* data = ba.data();
+            int size = ba.size();
+            QByteArray arr = name.toLocal8Bit();
+            char *urlName = arr.data();
+
+            aos_string_t bucket;
+            aos_string_t object;
+            aos_list_t buffer;
+            aos_buf_t *content = NULL;
+            aos_table_t *headers = NULL;
+            aos_table_t *resp_headers = NULL;
+            aos_status_t *resp_status = NULL;
+            aos_str_set(&bucket, m_BucketName.data());
+            aos_str_set(&object, urlName);
+            aos_list_init(&buffer);
+            content = aos_buf_pack(oss_client_options->pool, data, size);
+            aos_list_add_tail(&content->node, &buffer);
+             qDebug() << "111111";
+            resp_status = oss_put_object_from_buffer(oss_client_options, &bucket, &object, &buffer, headers, &resp_headers);
+                  qDebug() << resp_status;
+            if (aos_status_is_ok(resp_status))
+            {
+                output(QString::fromLocal8Bit("OSSUpload: 上传成功 耗时：") + _t.elapsed() + "ms " + name) ;
+            }
+            else
+            {
+                output(QString::fromLocal8Bit("OSSUpload: 上传失败 耗时：") + _t.elapsed() + "ms " + name + " " + resp_status->error_code + " " + resp_status->error_msg);
+            }
+        }
+    }
+    output(QString::fromLocal8Bit("OSSUpload: 调用总耗时：") + _t.elapsed() + "ms " + name)  ;
+}
+
+
+#if 0
 
 void COSSUpdate::slot_OSSUpload(QString imgUrl, QImage img)
 {
@@ -161,7 +229,7 @@ void COSSUpdate::slot_OSSUpload(QString imgUrl, QImage img)
     output(QString::fromLocal8Bit("OSSUpload: 调用总耗时：") + _t.elapsed() + "ms " + imgUrl)  ;
 }
 
-
+#endif
 #if 0
 #include "./osschannel.h"
 #include <QThread>

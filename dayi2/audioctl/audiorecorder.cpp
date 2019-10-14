@@ -50,8 +50,9 @@
 #include "audiorecorder.h"
 #include "qaudiolevel.h"
 #include "../aliyun/cossupdate.h"
-static qreal getPeakValue(const QAudioFormat &format);
-static QVector<qreal> getBufferLevels(const QAudioBuffer &buffer);
+#include "JlCompress.h"
+//static qreal getPeakValue(const QAudioFormat &format);
+//static QVector<qreal> getBufferLevels(const QAudioBuffer &buffer);
 
 template <class T>
 static QVector<qreal> getBufferLevels(const T *buffer, int frames, int channels);
@@ -60,26 +61,11 @@ AudioRecorder::AudioRecorder()
 {
     outputLocationSet =false;
     audioRecorder = new QAudioRecorder(this);
-#if 0
-    probe = new QAudioProbe;
-    connect(probe, SIGNAL(audioBufferProbed(QAudioBuffer)),
-            this, SLOT(processBuffer(QAudioBuffer)));
-    probe->setSource(audioRecorder);
-    connect(audioRecorder, SIGNAL(durationChanged(qint64)), this,
-            SLOT(updateProgress(qint64)));
-    connect(audioRecorder, SIGNAL(statusChanged(QMediaRecorder::Status)), this,
-            SLOT(updateStatus(QMediaRecorder::Status)));
- //   connect(audioRecorder, SIGNAL(stateChanged(QMediaRecorder::State)),
- //           this, SLOT(onStateChanged(QMediaRecorder::State)));
- //   connect(audioRecorder, SIGNAL(error(QMediaRecorder::Error)), this,
-//            SLOT(displayErrorMessage()));
-#endif
 }
 
 AudioRecorder::~AudioRecorder()
 {
     delete audioRecorder;
-  //  delete probe;
 }
 
 void AudioRecorder::updateProgress(qint64 duration)
@@ -102,7 +88,7 @@ int AudioRecorder::recvAudioInfo(const QByteArray &messagee)
        startRecorder(info);
     }else if(2 == info.code)
     {
-        stopRecorder(messagee);
+        stopRecorder(info);
     }
 
 
@@ -119,33 +105,58 @@ void AudioRecorder::updateStatus(QMediaRecorder::Status status)
         qDebug()<< tr("文件保存为： %1").arg(audioRecorder->actualLocation().toString());
         break;
     case QMediaRecorder::PausedStatus:
-      //  clearAudioLevels();
         qDebug()<< tr("暂停");
         break;
     case QMediaRecorder::UnloadedStatus:
     case QMediaRecorder::LoadedStatus:
-   //     clearAudioLevels();
         qDebug()<< tr("停止");
     default:
         break;
     }
-
-  //  if (audioRecorder->error() == QMediaRecorder::NoError)
-        // qDebug()<<
-        //ui->statusbar->showMessage(statusMessage);
 }
 
-int AudioRecorder::stopRecorder(const QByteArray &message)
+int AudioRecorder::AudioComPress()
 {
+     QString srcFile = m_Audiofile;
+
+     QString filePath = QCoreApplication::applicationDirPath() + "/audioFile" + QString("/zipFile");
+  //    qDebug() << "file path:" << filePath;
+      QDir tempDir;
+     //如果filePath路径不存在，创建它
+     if(!tempDir.exists(filePath))
+     {
+         qDebug()<<"创建路径"<<endl;
+         tempDir.mkpath(filePath);
+     }
+
+     QString fileName =filePath +"/"+ QString("liuxiaobo.zip");
+
+    JlCompress::compressFile(fileName,srcFile);
     // 上传阿里云
-   // QString file =  QString::fromLocal8Bit("E:\dayi\build-DaYi-Desktop_Qt_5_9_1_MSVC2015_32bit-Debug\debug");
- //   OssChannel::getInstance().PushFile(file);
+     QString testfile = QStringLiteral(BUILD_DIR"/index.html");
+     qDebug() << "start emit COSS";
+     emit COSSUpdate::instance()->emit_OSSUpload(testfile, QString("liuxiaobo.zip"));
+    //COSSUpdate::instance()->OSSUpload(fileName);
+    return 0;
+}
+
+
+
+int AudioRecorder::stopRecorder(WebAudioData info)
+{
+    qDebug()<< "456";
+    audioRecorder->stop();
+    // 开始压缩软件
+    AudioComPress();
+ //  QString file =  QString::fromLocal8Bit("E:\dayi\build-DaYi-Desktop_Qt_5_9_1_MSVC2015_32bit-Debug\debug");
+ //
   //  audioRecorder->pause();
     return 0;
 
 }
 int AudioRecorder::startRecorder(WebAudioData info)
 {
+    m_Audiofile = "";
     QString timeString = QString::number(BaseHelper::getTimeStamp(), 10);//nowTime.toString();
     QString Name = timeString +"_" +QString::number(info.user_id) + ".wav";
     setOutputLocation(Name);
@@ -163,29 +174,6 @@ void AudioRecorder::toggleRecord()
     foreach (const QString &device, audioRecorder->audioInputs()) {
         qDebug() << device;
     }
-#if 0
-    QAudioEncoderSettings audioSettings;
-    audioSettings.setCodec("audio/amr");
-       // audioSettings.setQuality(QMultimedia::HighQuality);
-#endif
-
-#if 0
-    QAudioFormat fmt;
-    fmt.setSampleRate(8000);// 采样率， 一秒采集音频样本数量，常设置为44100
-    fmt.setChannelCount(1);  // 音频通道数
-  //  fmt.setSampleSize(16); //一个音频数据大小
-    fmt.setCodec("audio/pcm"); //编码方式，大多声卡只支持pcm，也可以通过获取参数得到声卡支持参数
-    fmt.setByteOrder(QAudioFormat::LittleEndian); // 小端 存储还是大端存储
-    fmt.setSampleType(QAudioFormat::Unknown); // 数据类型，对应的是16位
-
-
-    QAudioDeviceInfo info = QAudioDeviceInfo::defaultInputDevice();
-    if (!info.isFormatSupported(fmt))// 判断是否支持配置
-    {
-        qDebug() << "Audio format not support!";
-        fmt = info.nearestFormat(fmt);// 如果不支持，取最近的配置方法。
-    }
-#endif
     audioRecorder->setAudioInput(audioRecorder->defaultAudioInput());
     QAudioEncoderSettings audioSettings;
     audioSettings.setCodec("audio/wav");
@@ -207,140 +195,21 @@ void AudioRecorder::togglePause()
 //创建文件输出位置
 void AudioRecorder::setOutputLocation(QString Name)
 {
-    QString filepath = QCoreApplication::applicationDirPath();
-     qDebug() << "file path:" << filepath;
-    QString fileName =filepath +"/"+ Name;
-    qDebug() << "fileName:" << fileName;
+    QString filePath = QCoreApplication::applicationDirPath() + "/audioFile" + QString("/wavFile");
+  //   qDebug() << "file path:" << filePath;
+
+
+     QDir tempDir;
+    //如果filePath路径不存在，创建它
+    if(!tempDir.exists(filePath))
+    {
+        qDebug()<<"创建路径"<<endl;
+        tempDir.mkpath(filePath);
+    }
+
+    QString fileName =filePath +"/"+ Name;
+ //   qDebug() << "fileName:" << fileName;
+    m_Audiofile = fileName;
     audioRecorder->setOutputLocation(QUrl::fromLocalFile(fileName));
     outputLocationSet = true;
-}
-
-void AudioRecorder::clearAudioLevels()
-{
-    for (int i = 0; i < audioLevels.size(); ++i)
-        audioLevels.at(i)->setLevel(0);
-}
-
-// This function returns the maximum possible sample value for a given audio format
-qreal getPeakValue(const QAudioFormat& format)
-{
-    // Note: Only the most common sample formats are supported
-    if (!format.isValid())
-        return qreal(0);
-
-    if (format.codec() != "audio/pcm")
-        return qreal(0);
-
-    switch (format.sampleType()) {
-    case QAudioFormat::Unknown:
-        break;
-    case QAudioFormat::Float:
-        if (format.sampleSize() != 32) // other sample formats are not supported
-            return qreal(0);
-        return qreal(1.00003);
-    case QAudioFormat::SignedInt:
-        if (format.sampleSize() == 32)
-            return qreal(INT_MAX);
-        if (format.sampleSize() == 16)
-            return qreal(SHRT_MAX);
-        if (format.sampleSize() == 8)
-            return qreal(CHAR_MAX);
-        break;
-    case QAudioFormat::UnSignedInt:
-        if (format.sampleSize() == 32)
-            return qreal(UINT_MAX);
-        if (format.sampleSize() == 16)
-            return qreal(USHRT_MAX);
-        if (format.sampleSize() == 8)
-            return qreal(UCHAR_MAX);
-        break;
-    }
-
-    return qreal(0);
-}
-
-// returns the audio level for each channel
-QVector<qreal> getBufferLevels(const QAudioBuffer& buffer)
-{
-    QVector<qreal> values;
-
-    if (!buffer.format().isValid() || buffer.format().byteOrder() != QAudioFormat::LittleEndian)
-        return values;
-
-    if (buffer.format().codec() != "audio/pcm")
-        return values;
-
-    int channelCount = buffer.format().channelCount();
-    values.fill(0, channelCount);
-    qreal peak_value = getPeakValue(buffer.format());
-    if (qFuzzyCompare(peak_value, qreal(0)))
-        return values;
-
-    switch (buffer.format().sampleType()) {
-    case QAudioFormat::Unknown:
-    case QAudioFormat::UnSignedInt:
-        if (buffer.format().sampleSize() == 32)
-            values = getBufferLevels(buffer.constData<quint32>(), buffer.frameCount(), channelCount);
-        if (buffer.format().sampleSize() == 16)
-            values = getBufferLevels(buffer.constData<quint16>(), buffer.frameCount(), channelCount);
-        if (buffer.format().sampleSize() == 8)
-            values = getBufferLevels(buffer.constData<quint8>(), buffer.frameCount(), channelCount);
-        for (int i = 0; i < values.size(); ++i)
-            values[i] = qAbs(values.at(i) - peak_value / 2) / (peak_value / 2);
-        break;
-    case QAudioFormat::Float:
-        if (buffer.format().sampleSize() == 32) {
-            values = getBufferLevels(buffer.constData<float>(), buffer.frameCount(), channelCount);
-            for (int i = 0; i < values.size(); ++i)
-                values[i] /= peak_value;
-        }
-        break;
-    case QAudioFormat::SignedInt:
-        if (buffer.format().sampleSize() == 32)
-            values = getBufferLevels(buffer.constData<qint32>(), buffer.frameCount(), channelCount);
-        if (buffer.format().sampleSize() == 16)
-            values = getBufferLevels(buffer.constData<qint16>(), buffer.frameCount(), channelCount);
-        if (buffer.format().sampleSize() == 8)
-            values = getBufferLevels(buffer.constData<qint8>(), buffer.frameCount(), channelCount);
-        for (int i = 0; i < values.size(); ++i)
-            values[i] /= peak_value;
-        break;
-    }
-
-    return values;
-}
-
-template <class T>
-QVector<qreal> getBufferLevels(const T *buffer, int frames, int channels)
-{
-    QVector<qreal> max_values;
-    max_values.fill(0, channels);
-
-    for (int i = 0; i < frames; ++i) {
-        for (int j = 0; j < channels; ++j) {
-            qreal value = qAbs(qreal(buffer[i * channels + j]));
-            if (value > max_values.at(j))
-                max_values.replace(j, value);
-        }
-    }
-
-    return max_values;
-}
-
-void AudioRecorder::processBuffer(const QAudioBuffer& buffer)
-{
-    #if 0
-    if (audioLevels.count() != buffer.format().channelCount()) {
-        qDeleteAll(audioLevels);
-        audioLevels.clear();
-        for (int i = 0; i < buffer.format().channelCount(); ++i) {
-            QAudioLevel *level = new QAudioLevel(ui->centralwidget);
-            audioLevels.append(level);
-            ui->levelsLayout->addWidget(level);
-        }
-    }
-#endif
-    QVector<qreal> levels = getBufferLevels(buffer);
-    for (int i = 0; i < levels.count(); ++i)
-        audioLevels.at(i)->setLevel(levels.at(i));
 }

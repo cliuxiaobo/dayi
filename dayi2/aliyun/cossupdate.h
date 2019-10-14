@@ -38,13 +38,13 @@ private:
     QMutex m_DataMutex;
 
 public slots:
-    void slot_OSSUpload(QString imgUrl, QImage img);
+    void slot_OSSUpload(QString fileFullUrl,QString name);
 signals:
-    void emit_OSSUpload(QString imgUrl, QImage img);
-
+    void emit_OSSUpload(QString fileFullUrl,QString name);
 };
 
 #endif // COSSUPDATE_H
+
 
 
 
