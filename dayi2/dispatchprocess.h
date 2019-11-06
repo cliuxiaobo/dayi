@@ -13,6 +13,7 @@
 #include <QQueue>
 #include "audioctl/audiorecorder.h"
 #include "print/fontPrint.h"
+#include "./webchannel/channeldialog.h"
 using namespace std;
 struct eventInfo{
     int srcID;
@@ -53,18 +54,24 @@ public:
 
 
     void run();
-    int ProcessMsg(const QByteArray &message);
     int Webview();
-    int DispatchSetWebview(int mode,int wige,int high);
-//    void adjustLocation();
 public slots:
-    void adjustLocation();
+   // void adjustLocation();
+    void slot_ProcessMsg(const QByteArray &message);
+
+signals:
+    void emit_ProcessMsg(const QByteArray &message);
+
    // void adjustLocation();
 
 private:
    explicit DispatchProcess();
     ~DispatchProcess();
-    int SetWebTitle(const QByteArray &message );
+
+    // 设置标题
+  //  int SetWebTitle(const QByteArray &message );
+    //回复信息函数
+    int DispatchRspWeb(int ErrorType, QString ErrorInfo);
     QQueue<eventInfo> QProcess;
     bool m_running;
     AudioRecorder *m_audioRecord;

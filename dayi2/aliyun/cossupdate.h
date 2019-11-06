@@ -5,6 +5,7 @@
 #include <QtCore>
 #include <QImage>
 #include "oss_api.h"
+#include "../../proxycpp.h"
 #include <QMutex>
 
 class COSSUpdate : public QObject
@@ -17,7 +18,10 @@ public:
     QString ImageEndPoint();
     bool m_bUseOSS;
 
-
+public slots:
+    void slot_OSSUpload(QString fileFullUrl,QString name,QString order_id);
+signals:
+    void emit_OSSUpload(QString fileFullUrl,QString name,QString order_id);
 
 private:
     QByteArray m_EndPoint;
@@ -37,45 +41,7 @@ private:
     QFile* m_DebugFile;
     QMutex m_DataMutex;
 
-public slots:
-    void slot_OSSUpload(QString fileFullUrl,QString name);
-signals:
-    void emit_OSSUpload(QString fileFullUrl,QString name);
+    ProxyCPP *m_Proxcpp;
 };
 
 #endif // COSSUPDATE_H
-
-
-
-
-#if 0
-#ifndef OSSCHANNEL_H
-#define OSSCHANNEL_H
-#include <QJsonDocument>
-#include <QJsonParseError>
-#include <QFile>
-#include <QJsonObject>
-#include <QDebug>
-#include <QJsonArray>
-#include "oss_api.h"
-#include "aos_http_io.h"
-class OssChannel
-{
-public:
-    static OssChannel &getInstance(void)
-    {
-        static OssChannel *instance;
-        if(!instance){
-                instance = new OssChannel();
-            }
-        return *instance;
-   }
-   int PushFile(QString file);
-private:
-   explicit OssChannel();
-    ~OssChannel();
-   aos_pool_t *pool;
-   oss_request_options_t *oss_client_options;
-};
-#endif
-#endif

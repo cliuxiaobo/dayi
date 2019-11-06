@@ -1,7 +1,23 @@
 ﻿#include "basehelper.h"
 #include <QDateTime>
+
+static QString hospital_name;
+static int hospital_id;
+
 namespace BaseHelper
 {
+
+     int SetHospitalInfo(QString name,int id)
+     {
+        hospital_name = name;
+        hospital_id = id;
+        return 0;
+
+     }
+     int GetHospitalId()
+     {
+        return hospital_id;
+     }
 
     // 获取commd
     int getWebCommandType(const QByteArray &message)
@@ -163,9 +179,8 @@ namespace BaseHelper
         if(rootObj.contains("data"))
         {
            QJsonObject subObj = rootObj.value("data").toObject();
-           info->id = subObj["id"].toInt();
-           info->name = subObj["name"].toString();
-           info->status = subObj["status"].toInt();
+           info->id = subObj["hospital_id"].toInt();
+           info->name = subObj["hospital_name"].toString();
             return 1;
         }
         return 0 ;
@@ -185,13 +200,34 @@ namespace BaseHelper
         if(rootObj.contains("data"))
         {
            QJsonObject subObj = rootObj.value("data").toObject();
-           info->code= subObj["code"].toInt();
+           info->order_id = subObj["order_id"].toString();
            info->user_id = subObj["user_id"].toInt();
+           info->user_name = subObj["user_name"].toInt();
             return 1;
         }
         return 0 ;
+    }
 
-
+    //获取data数据
+    int getWebData(const QByteArray &message,QString &info)
+    {
+        QJsonParseError json_error;
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(message,&json_error);
+        if(json_error.error != QJsonParseError::NoError)
+        {
+            qDebug() << "json error!";
+            // 回复Web端
+            return -1;
+        }
+        QJsonObject rootObj = jsonDoc.object();
+        //因为是预先定义好的JSON数据格式，所以这里可以这样读取
+        if(rootObj.contains("data"))
+        {
+           QJsonObject subObj = rootObj.value("data").toObject();
+           info= subObj["content"].toString();
+            return 1;
+        }
+        return 0 ;
     }
 
 
@@ -207,6 +243,6 @@ namespace BaseHelper
     QString getStrTime()
     {
          QDateTime current_time = QDateTime::currentDateTime();
-       return current_time.toString("yyyy-MM-dd hh:mm:ss ddd");
+       return current_time.toString("yyyy-MM-dd hh-mm-ss");
     }
 }

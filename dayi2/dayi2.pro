@@ -40,7 +40,8 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     dyconfig.cpp \
-    aliyun/cossupdate.cpp
+    aliyun/cossupdate.cpp \
+    proxycpp.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -56,7 +57,8 @@ HEADERS += \
     mainwindow.h \
     dyconfig.h \
     common.h \
-    aliyun/cossupdate.h
+    aliyun/cossupdate.h \
+    proxycpp.h
 
 FORMS += \
         mainwindow.ui
@@ -152,4 +154,7 @@ win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/common/quazip/
 else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/common/quazip/lib/libzdlld.a
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$PWD/common/quazip/lib/zdll.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$PWD/common/quazip/lib/zdlld.lib
+
+RESOURCES += \
+    res/res.qrc
 

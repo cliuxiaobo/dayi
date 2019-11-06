@@ -8,16 +8,17 @@
 #include <set>
 #define VERSION "2.4.5"
 
-
+// 录音，结束录音结构体
 typedef struct _WebAudioData{
-    int code;     // 主命令
+    QString user_name;     // 主命令
     int user_id;    // 子命令
+    QString order_id;
     _WebAudioData(){
-        code = 0;
+        user_name = "";
         user_id = 0;
+        order_id = "";
     }
 }WebAudioData;
-
 
 typedef struct _WebHeadInfo{
     int command_type;     // 主命令

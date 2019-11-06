@@ -1,4 +1,4 @@
-/****************************************************************************
+﻿/****************************************************************************
 **
 ** Copyright (C) 2016 Klarälvdalens Datakonsult AB, a KDAB Group company, info@kdab.com, author Milian Wolff <milian.wolff@kdab.com>
 ** Contact: https://www.qt.io/licensing/
@@ -47,9 +47,9 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
+#ifndef CHANNEL_DIALOG_H
+#define CHANNEL_DIALOG_H
 #include "qwebchannel.h"
-
 #include <QApplication>
 #include <QDialog>
 #include <QVariantMap>
@@ -74,21 +74,13 @@ public:
     WebDialog(QObject *parent = 0);
     ~WebDialog();
     void displayMessage(QByteArray &message);
+     void SendToWeb(const QString &text);
 signals:
-    /*!
-        This signal is emitted from the C++ side and the text displayed on the HTML client side.
-    */
-    void sendText(const QString &text);
+    void sendText(const QString &text);   //发送到web界面
 
 public slots:
-    /*!
-        This slot is invoked from the HTML client side and the text displayed on the server side.
-    */
-   // void receiveText(const QString &text);
-    void receiveText(const QString &text);
+    void receiveText(const QString &text); //接收web界面信息
 private:
-   // QDialog dialog;
-    //Ui::Dialog ui;
 };
-
+#endif
 //#include "main.moc"

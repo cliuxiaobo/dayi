@@ -10,6 +10,10 @@
 #include "./Common.h"
 namespace BaseHelper
 {
+
+    int SetHospitalInfo(QString name,int id);
+
+    int GetHospitalId();
     // 获取web端发出命令类型
     int getWebCommandType(const QByteArray &message);
 
@@ -30,6 +34,9 @@ namespace BaseHelper
 
     // 获取音频设备的DATA
     int getWebInfo(const QByteArray &message,WebAudioData *info);
+
+    //
+    int getWebData(const QByteArray &message,QString &info);
 
     // 获取时间戳
     long getTimeStamp();

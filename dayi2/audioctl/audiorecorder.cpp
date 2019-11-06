@@ -77,6 +77,9 @@ void AudioRecorder::updateProgress(qint64 duration)
 
 int AudioRecorder::recvAudioInfo(const QByteArray &messagee)
 {
+
+    // 取消掉接收函数
+#if 0
     WebAudioData info;
     int ret = BaseHelper::getWebInfo(messagee,&info);
     if(ret < 0 ){
@@ -88,10 +91,10 @@ int AudioRecorder::recvAudioInfo(const QByteArray &messagee)
        startRecorder(info);
     }else if(2 == info.code)
     {
-        stopRecorder(info);
+        stopRecorder();
     }
-
-
+#endif
+    return 0;
 }
 
 
@@ -115,7 +118,8 @@ void AudioRecorder::updateStatus(QMediaRecorder::Status status)
     }
 }
 
-int AudioRecorder::AudioComPress()
+// 压缩上传阿里云
+int AudioRecorder::AudioComPress(QString order_id)
 {
      QString srcFile = m_Audiofile;
 
@@ -128,37 +132,53 @@ int AudioRecorder::AudioComPress()
          qDebug()<<"创建路径"<<endl;
          tempDir.mkpath(filePath);
      }
-
-     QString fileName =filePath +"/"+ QString("liuxiaobo.zip");
+     QString localObjName =m_objfile + ".zip";
+     QString fileName =filePath +"/"+ localObjName;
 
     JlCompress::compressFile(fileName,srcFile);
     // 上传阿里云
-     QString testfile = QStringLiteral(BUILD_DIR"/index.html");
-     qDebug() << "start emit COSS";
-     emit COSSUpdate::instance()->emit_OSSUpload(testfile, QString("liuxiaobo.zip"));
+   //  QString testfile = QStringLiteral(BUILD_DIR"/index.html");
+   //  qDebug() << "start emit COSS";
+    QDateTime current_time = QDateTime::currentDateTime();
+    QString year = current_time.toString("yyyy");
+    QString month = current_time.toString("MM");
+    QString day = current_time.toString("dd");
+    QString AliObjName = QString::number(BaseHelper::GetHospitalId()) + "/" + year +"/" + month + "/" \
+            +day + "/" + m_objfile + ".zip";
+    qDebug() << AliObjName;
+    emit COSSUpdate::instance()->emit_OSSUpload(fileName, AliObjName,order_id);
+
     //COSSUpdate::instance()->OSSUpload(fileName);
     return 0;
 }
 
 
 
-int AudioRecorder::stopRecorder(WebAudioData info)
+int AudioRecorder::stopRecorder(const QByteArray &message)
 {
-    qDebug()<< "456";
+    WebAudioData info;
+    int ret = BaseHelper::getWebInfo(message,&info);
+    if(ret < 0 ){
+        return -1;
+    }
     audioRecorder->stop();
     // 开始压缩软件
-    AudioComPress();
- //  QString file =  QString::fromLocal8Bit("E:\dayi\build-DaYi-Desktop_Qt_5_9_1_MSVC2015_32bit-Debug\debug");
- //
-  //  audioRecorder->pause();
+    AudioComPress(info.order_id);
     return 0;
 
 }
-int AudioRecorder::startRecorder(WebAudioData info)
+int AudioRecorder::startRecorder(const QByteArray &message)
 {
+    WebAudioData info;
+    int ret = BaseHelper::getWebInfo(message,&info);
+    if(ret < 0 ){
+        return -1;
+    }
     m_Audiofile = "";
     QString timeString = QString::number(BaseHelper::getTimeStamp(), 10);//nowTime.toString();
+    //QString timeString = BaseHelper::getStrTime();
     QString Name = timeString +"_" +QString::number(info.user_id) + ".wav";
+    m_objfile = Name;
     setOutputLocation(Name);
     // 设置录音名字
     toggleRecord();
@@ -176,11 +196,11 @@ void AudioRecorder::toggleRecord()
     }
     audioRecorder->setAudioInput(audioRecorder->defaultAudioInput());
     QAudioEncoderSettings audioSettings;
-    audioSettings.setCodec("audio/wav");
-    audioSettings.setSampleRate(16000);
-    audioSettings.setBitRate(16);
-    audioSettings.setChannelCount(1);
-    audioSettings.setQuality(QMultimedia::VeryLowQuality);
+    audioSettings.setCodec("audio/amr");
+  //  audioSettings.setSampleRate(16000);
+   // audioSettings.setBitRate(16);
+   // audioSettings.setChannelCount(1);
+    audioSettings.setQuality(QMultimedia::HighQuality);
     audioSettings.setEncodingMode(QMultimedia::ConstantQualityEncoding);
     audioRecorder->setEncodingSettings(audioSettings);
     audioRecorder->record();

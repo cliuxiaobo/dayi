@@ -37,6 +37,8 @@
 #include "../basehelper.h"
 #include "./orderpix.h"
 
+
+#if 0
 template<typename Arg, typename R, typename C>
 struct InvokeWrapper {
     R *receiver;
@@ -77,6 +79,7 @@ int FontPrint::getPrintDeviceList()
 // 打印门诊病历单
 int FontPrint::PrintDocumentDrug(const QByteArray &message,bool flag)
 {
+#if 0
     WebPrintBodyInfo bodyInfo;
     WebHeadInfo headInfo;
     WebPrintADInfo ADinfo;
@@ -108,6 +111,7 @@ int FontPrint::PrintDocumentDrug(const QByteArray &message,bool flag)
         qDebug() << "could't open projects json";
         return 0;
     }
+#endif
     QByteArray allData = loadFile.readAll();
    loadFile.close();
     QString strHtml;
@@ -254,7 +258,19 @@ void FontPrint::printDocumentA4(const QString &strHtml, int iFormat)
     m_currentPrinter->setPrinterName(m_currentPrinter->printerName());
     doc =new QWebEnginePage();
     connect(doc, SIGNAL(loadFinished(bool)), SLOT(printLocation(bool))); // 注册登录完成事件
-    doc->setHtml(strHtml);  // 获取网页内容
+
+    QFile loadFile("e:\\1.html");
+    if(!loadFile.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "could't open projects json";
+        return;
+    }
+    QByteArray allData = loadFile.readAll();
+   loadFile.close();
+  //  strHtml.prepend(allData);
+    QString strHtml1 = allData;
+    qDebug() << strHtml1;
+    doc->setHtml(strHtml1);  // 获取网页内容
     return;
 }
 
@@ -280,4 +296,91 @@ int FontPrint::printDocument(QPrinter *printer)
         painter.drawPixmap(0, 0 ,*m_pix);
         painter.end();
         return 0;
+}
+#endif
+
+// 打印门诊病历单
+int FontPrint::PrintDocumentDrug(const QByteArray &message,bool flag)
+{
+
+    QByteArray allData = loadFile.readAll();
+   loadFile.close();
+    QString strHtml;
+    strHtml.append(allData);
+    printDocumentA4(strHtml, 1);
+}
+
+void FontPrint::drawPic(QPrinter *printerPixmap)
+{
+    //纵向：Portrait 横向：Landscape
+    printerPixmap->setOrientation(QPrinter::Portrait);
+    //获取界面的图片
+    QPainter painterPixmap(this);
+    painterPixmap.begin(printerPixmap);
+    QRect rect = painterPixmap.viewport();
+    int x = rect.width() / m_pix->width();
+    int y = rect.height() / m_pix->height();
+    //设置图像长宽是原图的多少倍
+    painterPixmap.scale(x, y);
+    painterPixmap.drawPixmap(0, 0, *m_pix);
+    painterPixmap.end();
+}
+
+
+
+
+void FontPrint::printDocumentA4(const QString &strHtml, int iFormat)
+{
+
+    m_currentPrinter = new QPrinter();
+    m_currentPrinter->setPrinterName(m_currentPrinter->printerName());
+    doc =new QWebEnginePage();
+    if(1 == iFormat){
+        QPrintPreviewDialog preview(&printer, this);// 创建打印预览对话框
+        connect(&preview, SIGNAL(paintRequested(QPrinter*)), SLOT(drawPic(QPrinter*)));
+        preview.exec();
+    }
+
+
+    connect(doc, SIGNAL(loadFinished(bool)), SLOT(printLocation(bool))); // 注册登录完成事件
+
+    QFile loadFile("e:\\1.html");
+    if(!loadFile.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "could't open projects json";
+        return;
+    }
+    QByteArray allData = loadFile.readAll();
+   loadFile.close();
+  //  strHtml.prepend(allData);
+    QString strHtml1 = allData;
+    qDebug() << strHtml1;
+    doc->setHtml(strHtml1);  // 获取网页内容
+    return;
+}
+
+
+int FontPrint::printPreview()
+{
+    QPrinter printer(QPrinter::HighResolution);
+
+   // 获取默认打印机
+   QPrinterInfo info;
+   QString name = info.defaultPrinterName(); // 获取默认打印机名字
+    printer.setPrinterName(name);
+    printer.setPageSize(QPrinter::Custom);
+    printer.setPaperSize(QSizeF(190,800), QPrinter::Point);
+    QPrintPreviewDialog preview(&printer, this);// 创建打印预览对话框
+     connect(&preview, SIGNAL(paintRequested(QPrinter*)), SLOT(drawPic(QPrinter*)));
+     preview.exec();
+    return 0;
+}
+
+
+// 打印信息加载完成
+void FontPrint::printLocation(bool flag)
+{
+
+    qDebug()<< "start print";
+    doc->print(m_currentPrinter, invoke(this, &FontPrint::slotHandlePagePrinted));
 }

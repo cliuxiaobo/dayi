@@ -63,9 +63,9 @@ public:
     AudioRecorder();
     ~AudioRecorder();
      void setOutputLocation(QString Name);
-     int startRecorder(WebAudioData info);
+     int startRecorder(const QByteArray &message);
     int recvAudioInfo(const QByteArray &messagee);
-    int stopRecorder(WebAudioData info);
+    int stopRecorder(const QByteArray &message);
 public slots:
  //   void processBuffer(const QAudioBuffer&);
 
@@ -88,7 +88,7 @@ private slots:
 private:
     void clearAudioLevels();
  //   int ComPressFile(QString dstFile,QString srcFile);
-    int AudioComPress();
+    int AudioComPress(QString order_id);
     Ui::AudioRecorder *ui;
     QPrintPreviewDialog m_printPreDlg;
     QAudioRecorder *audioRecorder;
@@ -96,6 +96,7 @@ private:
     QList<QAudioLevel*> audioLevels;
     bool outputLocationSet;
     QString m_Audiofile;
+    QString m_objfile;
 };
 
 #endif // AUDIORECORDER_H

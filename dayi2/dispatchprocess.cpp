@@ -5,16 +5,22 @@
 #include <QJsonObject>
 #include <QDebug>
 #include <QJsonArray>
+#include<QJsonDocument>
+#include<QJsonObject>
+#include<QJsonArray>
+#include<QFile>
 #include "dispatchprocess.h"
 #include "basehelper.h"
+static WebDialog *m_WebObj;
+
 
 DispatchProcess::DispatchProcess()
 {
     m_audioRecord = new AudioRecorder();
     m_Print =  new FontPrint();
     m_windos =  new MainWindow();
-
-
+     qDebug() << "init emit_ProcessMsg";
+    connect(this,SIGNAL(emit_ProcessMsg(const QByteArray)),this,SLOT(slot_ProcessMsg(const QByteArray)));
 }
 
 DispatchProcess::~DispatchProcess()
@@ -24,95 +30,73 @@ DispatchProcess::~DispatchProcess()
     delete m_windos;
 }
 
-// 界面加载完成
-void DispatchProcess::adjustLocation()
-{
-#if 0
-  //  qDebug()<< "界面加载完成界面";
-  //  this->showMaximized();
-   // this->showFullScreen();
-    m_view->setZoomFactor(m_view->zoomFactor() + 0.5);
-    m_view->showMaximized();
-    m_view->show();
-    m_start_Screen->close();
-#endif
-}
-
 void DispatchProcess::run()
 {
 
 }
-int DispatchProcess::Webview()
-{
+
 #if 0
-    m_view->setWindowTitle(QString::fromLocal8Bit("扶桑云医"));
-    m_view->setWindowIcon(QIcon("fusang.ico"));
-    m_view->setContextMenuPolicy(Qt::NoContextMenu);
-    connect(m_view, SIGNAL(loadFinished(bool)), SLOT(adjustLocation())); // 注册登录完成事件
-    m_view->setUrl(QUrl(QStringLiteral("http://192.168.1.9:8080")));  // 登录界面
-
-    m_start_Screen->resize(1024, 750);
-    m_start_Screen->setWindowTitle(QString::fromLocal8Bit("正在启动..."));
-
-   // m_start_Screen->setWindowIcon(QIcon("E:/dayi/adyi2.0/dayi2/res/img/ico/dayi.ico"));
-    m_start_Screen->setStyleSheet("border-image:url(./beijin.jpg)");
-    m_start_Screen->show();
-#endif
+// 注册回复UI函数
+int DispatchProcess::DispatchRegisterWeb(WebDialog *pthis)
+{
+   // m_windos->SetWebWiew(mode,wige,high);
     return 0;
 }
-
-
-int DispatchProcess::SetWebTitle(const QByteArray &message)
-{
-#if 0
-    WebTitleData info;
-    int ret = BaseHelper::getWebInfo(message,&info);
-    if(ret > 0){
-        // 设置标题
-        m_view->setWindowTitle(info.name);
-        return 0;
-    }else{
-        return -1;
-    }
-    return -1;
 #endif
-    return 0;
-}
 
+#if 0
 int DispatchProcess::DispatchSetWebview(int mode,int wige,int high)
 {
    // m_windos->SetWebWiew(mode,wige,high);
     return 0;
 }
-#if 0
-int DispatchProcess::DispatchRspWeb()
-{
-    JSONObject obj = new JSONObject();
-    obj.put("name", "John");
-    obj.put("sex", "male");
-    obj.put("age", 22);
-    obj.put("is_student", true);
-    obj.put("hobbies", new String[] {"hiking", "swimming"});
-}
 #endif
-int DispatchProcess::ProcessMsg(const QByteArray &message)
+int DispatchProcess::Webview()
 {
+
+    return 0;
+}
+
+//发送给客户端数据
+int DispatchProcess::DispatchRspWeb(int ErrorType, QString ErrorInfo)
+{
+//创建json对象
+    QJsonObject obj;
+    QJsonObject sub;
+    sub.insert("error_type",QJsonValue(ErrorType));
+    sub.insert("error_info",QJsonValue(ErrorInfo));
+    obj.insert("data",QJsonValue(sub));
+    obj.insert("code",QJsonValue("201"));
+    return 0;
+}
+
+// 接收线上数据
+void DispatchProcess::slot_ProcessMsg(const QByteArray &message)
+{
+    // 获取code命令
     int command = BaseHelper::getWebCommandType(message);
-    qDebug() << command;
+
     if(0 == command){
         qDebug() << "no code obj";
-        return -1;
+        return;
     }else if(-1 == command){
         qDebug() << "ProcessMsg:json error!";
-        return -1;
+        return ;
     }
-    //执行开始录音相关操作
-    if(101 == command){
-       // m_audioRecord->startRecorder(message);
-        m_audioRecord->recvAudioInfo(message);
-    }else if(102== command) {   // 执行打印相关操作
-        m_Print->recvPrintInfo(message);
-    }else if(100 == command){ // 修改标题
-        SetWebTitle(message);
+    qDebug() << command;
+    if(100 == command){
+         m_windos->recvWindowInfo(message);// 界面修改操作
+    }else if(101 == command){    // 开始录音
+        m_audioRecord->startRecorder(message);
+    }else if(102 == command) {   // 执行结束录音
+        m_audioRecord->stopRecorder(message);
+        //m_Print->recvPrintInfo(message);
+    }else if(201 == command){
+        QString strHtml;
+      //  m_audioRecord->stopRecorder();
+        BaseHelper::getWebData(message,strHtml);
+        m_Print->printDocumentA4(strHtml);
+
     }
+    return;
 }
